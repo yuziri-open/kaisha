@@ -96,6 +96,10 @@ export const api = {
       method: "POST",
       body: payload
     }),
+  deleteAgent: (agentId: string) =>
+    request<void>(`/agents/${agentId}`, {
+      method: "DELETE"
+    }),
   getTasks: (companyId: string) => request<Task[]>(`/companies/${companyId}/tasks`),
   getProjects: (companyId: string) => request<Project[]>(`/companies/${companyId}/projects`),
   getDashboard: (companyId: string) => request<DashboardResponse>(`/companies/${companyId}/dashboard`),

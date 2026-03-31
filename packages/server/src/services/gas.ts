@@ -2,10 +2,91 @@ import type { CalendarEvent, GasFile, GasTask } from "@kaisha/shared";
 
 export interface GasConfig {
   endpoint: string;
+  calendarUrl?: string;
+  projectUrl?: string;
   enabled: boolean;
   calendarSync: boolean;
   taskSync: boolean;
   syncIntervalMinutes: number;
+}
+
+export interface GasServiceConfig {
+  calendarUrl: string;
+  projectUrl: string;
+}
+
+export class GasService {
+  constructor(private config: GasServiceConfig) {}
+
+  async getCalendar(days: number): Promise<CalendarEvent[]> {
+    if (!this.config.calendarUrl) return [];
+    const url = new URL(this.config.calendarUrl);
+    url.searchParams.set("action", "calendar");
+    url.searchParams.set("days", String(days));
+    const payload = await fetchJson(url);
+    return unwrapArray(payload, ["events", "data", "items"]).map(toCalendarEvent);
+  }
+
+  async listFiles(folderId?: string): Promise<GasFile[]> {
+    if (!this.config.calendarUrl) return [];
+    const url = new URL(this.config.calendarUrl);
+    url.searchParams.set("action", "list");
+    if (folderId) url.searchParams.set("folderId", folderId);
+    const payload = await fetchJson(url);
+    return unwrapArray(payload, ["files", "data", "items"]).map(toGasFile);
+  }
+
+  async downloadFile(fileId: string): Promise<string> {
+    if (!this.config.calendarUrl) return "";
+    const url = new URL(this.config.calendarUrl);
+    url.searchParams.set("fileId", fileId);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`GAS download failed: ${res.status}`);
+    return res.text();
+  }
+
+  async uploadFile(fileName: string, content: string, mimeType: string, folderName?: string): Promise<void> {
+    if (!this.config.calendarUrl) return;
+    await fetchJson(this.config.calendarUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "upload", fileName, content, mimeType, folderName })
+    });
+  }
+
+  async addTask(task: string): Promise<void> {
+    if (!this.config.calendarUrl) return;
+    await fetchJson(this.config.calendarUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "add_task", task })
+    });
+  }
+
+  async getProjectTree(maxDepth?: number): Promise<unknown> {
+    if (!this.config.projectUrl) return null;
+    const url = new URL(this.config.projectUrl);
+    url.searchParams.set("action", "tree");
+    if (maxDepth !== undefined) url.searchParams.set("maxDepth", String(maxDepth));
+    return fetchJson(url);
+  }
+
+  async readSheet(fileId: string): Promise<unknown> {
+    if (!this.config.projectUrl) return null;
+    const url = new URL(this.config.projectUrl);
+    url.searchParams.set("action", "readSheet");
+    url.searchParams.set("fileId", fileId);
+    return fetchJson(url);
+  }
+
+  async readDoc(fileId: string): Promise<string> {
+    if (!this.config.projectUrl) return "";
+    const url = new URL(this.config.projectUrl);
+    url.searchParams.set("action", "readDoc");
+    url.searchParams.set("fileId", fileId);
+    const payload = await fetchJson(url);
+    return typeof payload === "string" ? payload : JSON.stringify(payload);
+  }
 }
 
 type UnknownRecord = Record<string, unknown>;

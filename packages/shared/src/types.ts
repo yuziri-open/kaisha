@@ -1,6 +1,6 @@
 export type AgentRole = "ceo" | "manager" | "worker";
 export type AgentStatus = "idle" | "running" | "error" | "paused";
-export type AdapterType = "claude_code" | "codex" | "shell" | "http";
+export type AdapterType = "claude_code" | "codex" | "shell" | "http" | "openclaw";
 export type TaskStatus =
   | "backlog"
   | "todo"
@@ -129,6 +129,8 @@ export interface GasTask {
 
 export interface GasSettings {
   endpoint: string;
+  calendarUrl: string;
+  projectUrl: string;
   enabled: boolean;
   calendarSync: boolean;
   taskSync: boolean;

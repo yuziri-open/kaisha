@@ -6,10 +6,18 @@ function runClaude(context: ExecutionContext): Promise<ExecutionResult> {
   const config = context.agent.adapterConfig ?? {};
   const model = typeof config.model === "string" ? config.model : "claude-sonnet-4-20250514";
   const permissionMode = typeof config.permissionMode === "string" ? config.permissionMode : undefined;
+  const budgetMonthlyCents = context.agent.budgetMonthlyCents;
   const args = ["-p", "--output-format", "json", "--model", model];
 
-  if (permissionMode && permissionMode !== "default") {
+  if (permissionMode === "skip" || permissionMode === "dangerously-skip-permissions") {
+    args.push("--dangerously-skip-permissions");
+  } else if (permissionMode && permissionMode !== "default") {
     args.push("--permission-mode", permissionMode);
+  }
+
+  if (budgetMonthlyCents > 0) {
+    const budgetUsd = (budgetMonthlyCents / 100).toFixed(2);
+    args.push("--max-budget-usd", budgetUsd);
   }
 
   args.push(context.prompt);
@@ -21,7 +29,8 @@ function runClaude(context: ExecutionContext): Promise<ExecutionResult> {
         ...process.env,
         ...context.env
       },
-      stdio: ["ignore", "pipe", "pipe"]
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: true
     });
 
     let stdout = "";

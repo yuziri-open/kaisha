@@ -8,6 +8,8 @@ const GAS_LAST_SYNC_KEY = "gas.lastSyncAt";
 
 const defaultGasSettings: GasSettings = {
   endpoint: "",
+  calendarUrl: "",
+  projectUrl: "",
   enabled: false,
   calendarSync: true,
   taskSync: false,
@@ -27,6 +29,8 @@ export function getGasSettings(): GasSettings {
   const stored = getSetting<Record<string, unknown>>(GAS_SETTINGS_KEY) ?? {};
   return {
     endpoint: typeof stored.endpoint === "string" ? stored.endpoint : defaultGasSettings.endpoint,
+    calendarUrl: typeof stored.calendarUrl === "string" ? stored.calendarUrl : defaultGasSettings.calendarUrl,
+    projectUrl: typeof stored.projectUrl === "string" ? stored.projectUrl : defaultGasSettings.projectUrl,
     enabled: parseBoolean(stored.enabled, defaultGasSettings.enabled),
     calendarSync: parseBoolean(stored.calendarSync, defaultGasSettings.calendarSync),
     taskSync: parseBoolean(stored.taskSync, defaultGasSettings.taskSync),
@@ -52,6 +56,8 @@ function saveGasSettings(settings: GasSettings): GasSettings {
   };
   setSetting(GAS_SETTINGS_KEY, {
     endpoint: next.endpoint,
+    calendarUrl: next.calendarUrl,
+    projectUrl: next.projectUrl,
     enabled: next.enabled,
     calendarSync: next.calendarSync,
     taskSync: next.taskSync,
@@ -107,6 +113,8 @@ settingsRoutes.put("/settings", async (c) => {
   const current = getGasSettings();
   const next = saveGasSettings({
     endpoint: typeof gasBody.endpoint === "string" ? gasBody.endpoint.trim() : current.endpoint,
+    calendarUrl: typeof gasBody.calendarUrl === "string" ? gasBody.calendarUrl.trim() : current.calendarUrl,
+    projectUrl: typeof gasBody.projectUrl === "string" ? gasBody.projectUrl.trim() : current.projectUrl,
     enabled: parseBoolean(gasBody.enabled, current.enabled),
     calendarSync: parseBoolean(gasBody.calendarSync, current.calendarSync),
     taskSync: parseBoolean(gasBody.taskSync, current.taskSync),

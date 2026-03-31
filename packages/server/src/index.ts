@@ -10,6 +10,7 @@ import { adaptersRoutes } from "./routes/adapters.js";
 import { agentsRoutes } from "./routes/agents.js";
 import { companiesRoutes } from "./routes/companies.js";
 import { dashboardRoutes } from "./routes/dashboard.js";
+import { gasRoutes } from "./routes/gas.js";
 import { projectsRoutes } from "./routes/projects.js";
 import { runsRoutes } from "./routes/runs.js";
 import { settingsRoutes } from "./routes/settings.js";
@@ -64,6 +65,7 @@ export function createApp(): Hono {
   app.route("/api", activityRoutes);
   app.route("/api", dashboardRoutes);
   app.route("/api", settingsRoutes);
+  app.route("/api", gasRoutes);
 
   app.get("*", async (c) => {
     const uiDist = getUiDistPath();

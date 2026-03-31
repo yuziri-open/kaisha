@@ -11,10 +11,17 @@ function runCodex(context: ExecutionContext): Promise<ExecutionResult> {
       : typeof config.approval === "string"
         ? config.approval
         : "full-auto";
-  const args = ["exec", context.prompt, "--model", model, "--approval-mode", approval];
+  const yolo = config.yolo === true || config.yolo === "true";
+  const args = ["exec", context.prompt, "--model", model];
 
-  if (context.workingDir) {
-    args.push("--cwd", context.workingDir);
+  if (approval === "full-auto") {
+    args.push("--full-auto");
+  } else {
+    args.push("-a", approval);
+  }
+
+  if (yolo) {
+    args.push("--yolo");
   }
 
   return new Promise((resolve, reject) => {
@@ -24,7 +31,8 @@ function runCodex(context: ExecutionContext): Promise<ExecutionResult> {
         ...process.env,
         ...context.env
       },
-      stdio: ["ignore", "pipe", "pipe"]
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: true
     });
 
     let stdout = "";
